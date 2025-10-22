@@ -1,0 +1,85 @@
+[
+    {
+        "session_id": "CH796178b437c64d3493d4cbb43c30f308",
+        "author": "whatsapp:+5599981593559",
+        "count_messages": 15,
+        "conversations": [
+            {
+                "author": "customer",
+                "message": "Olá! Estava acessando a página do curso de Styling e produção de editorial de moda e gostaria de mais informações sobre o curso.",
+                "timestamp": "2025-10-20T22:00:54.433Z"
+            },
+            {
+                "author": "bot",
+                "message": "Olá! Fico feliz em ajudar você com informações sobre o curso de Styling e Produção de Editorial de Moda. Para que eu possa te conectar com nosso especialista, preciso de algumas informações: seu nome completo e e-mail, por favor.",
+                "timestamp": "2025-10-20T22:00:54.433Z"
+            },
+            {
+                "author": "customer",
+                "message": "Sabrina Yasmim, email smesquita850@gmail.com",
+                "timestamp": "2025-10-20T22:02:31.373Z"
+            },
+            {
+                "author": "bot",
+                "message": "O curso de **Styling e Produção de Editorial de Moda** é uma formação gratuita com duração de 10 horas. Ele aborda o planejamento de comunicação e a construção da relevância no discurso das marcas de moda, incluindo conceitos de imagem, direcionamento visual e consumo, styling, criação de imagem de marca, editoriais, campanhas e lookbooks.\n\nOs professores deste curso são Larissa Cunegundes, colunista da Glamour Brasil, e Renata Domingues Stoduto, professora da PUCRS.",
+                "timestamp": "2025-10-20T22:02:31.373Z"
+            },
+            {
+                "author": "bot",
+                "message": "O curso possui as seguintes disciplinas:\n- Relevância e autenticidade\n- Moda digital\n- Criar conteúdo de moda\n- Processo criativo\n- Fotógrafos de referência\n- Tendências\n- Imagem de moda\n- Componentes da imagem\n- Styling e stylist\n\nSe você deseja se matricular ou precisa de mais informações, é só me avisar!",
+                "timestamp": "2025-10-20T22:02:31.373Z"
+            },
+            {
+                "author": "customer",
+                "message": "Eu quero saber como eu posso acessar minhas aulas",
+                "timestamp": "2025-10-20T22:04:01.592Z"
+            },
+            {
+                "author": "bot",
+                "message": "O acesso ao EAD é bem simples! Após sua matrícula, você receberá um login e senha por e-mail. Para acessar as aulas, entre no site da PUCRS e acesse a área do EAD, usando suas credenciais. Assim você poderá acessar todo o conteúdo do curso 24h por dia, incluindo materiais, fóruns e suporte técnico. \n\nSe precisar de mais assistência, fique à vontade para perguntar!",
+                "timestamp": "2025-10-20T22:04:01.592Z"
+            },
+            {
+                "author": "customer",
+                "message": "Não parece área do ead",
+                "timestamp": "2025-10-20T22:30:35.725Z"
+            },
+            {
+                "author": "bot",
+                "message": "Para acessar suas aulas pelo EAD, siga estes passos:\n\n1. Acesse a Sala Virtual pelo link: [salavirtual.pucrs.br](https://salavirtual.pucrs.br/) e faça login com seu e-mail e senha do curso.\n2. Na tela inicial, você verá a opção \"Aula ao vivo\" com o convidado do dia, caso esteja em período de aulas ao vivo.\n3. No horário da aula, o botão \"ao vivo\" ficará disponível no menu lateral esquerdo.\n4. Se o botão não aparecer, tente acessar por um navegador em modo anônimo ou limpe os dados de navegação no seu navegador.\n\nVocê também pode assistir as aulas pelo aplicativo PUCRS Online, disponível na Google Play e App Store. Basta fazer login com os mesmos dados do site e você poderá acompanhar suas aulas de qualquer lugar!\n\nCaso ainda tenha dificuldades, recomendo entrar em contato com a equipe de suporte pelo WhatsApp: (51) 93300-7000.",
+                "timestamp": "2025-10-20T22:30:35.725Z"
+            },
+            {
+                "author": "customer",
+                "message": "Quando será as minhas aulas?",
+                "timestamp": "2025-10-20T22:32:29.928Z"
+            },
+            {
+                "author": "bot",
+                "message": "As aulas da PUCRS Online são oferecidas de forma flexível e podem ser acessadas a qualquer momento, já que são gravadas e disponibilizadas no ambiente virtual de aprendizagem.\n\nAssim, você pode assistir às aulas quando for mais conveniente para você, sem a necessidade de se adaptar a um horário fixo.\n\nAproveite essa flexibilidade para organizar seus estudos da melhor maneira!",
+                "timestamp": "2025-10-20T22:32:29.928Z"
+            },
+            {
+                "author": "customer",
+                "message": "Oq me aparece é isso!",
+                "timestamp": "2025-10-20T22:33:32.888Z"
+            },
+            {
+                "author": "bot",
+                "message": "Entendo que você está tendo dificuldades com a interface da plataforma. Acesse o EAD pelo link [salavirtual.pucrs.br](https://salavirtual.pucrs.br/) e, se não estiver conseguindo visualizar as aulas ou a programação, tente limpar o cache do seu navegador ou acessar em modo anônimo.\n\nSe o problema persistir, é importante contactar nossa equipe de suporte técnico que poderá resolver a situação. Você pode entrar em contato pelo WhatsApp: (51) 93300-7000.",
+                "timestamp": "2025-10-20T22:33:32.888Z"
+            },
+            {
+                "author": "customer",
+                "message": "```\n## PRODUTOS/PROMOÇÕES:\n- Styling e produção de editorial de moda - Curso Bônus: [não especificado] → [não especificado] ([não mencionado])\n\n## FORMAS DE PAGAMENTO:\n- [não mencionado]\n\n## INFORMAÇÕES ADICIONAIS:\n- Estabelecimento: PUCRS\n- Validade: 60 dias para aplicação do crédito\n- Observações: Ganhe até R$ 800 em crédito na sua carteira PUCRS Online ao indicar.\n```",
+                "timestamp": "2025-10-20T22:33:35.092Z"
+            },
+            {
+                "author": "bot",
+                "message": "Parece que você tem informações sobre o curso de Styling e Produção de Editorial de Moda. Para obter detalhes sobre bônus, formas de pagamento e promoções, recomendo verificar diretamente com a nossa equipe de vendas, que pode fornecer informações atualizadas e específicas.\n\nSe precisar, posso te conectar com eles!",
+                "timestamp": "2025-10-20T22:33:35.092Z"
+            }
+        ],
+        "elapsed_time": 1960.659
+    }
+]
