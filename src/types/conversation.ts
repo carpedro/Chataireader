@@ -5,6 +5,8 @@ export interface ConversationData {
   timestamp: string;
   author: string;
   message: string;
+  contato?: string; // Número do WhatsApp sem o prefixo 'whatsapp:+'
+  first_message_text?: string; // Primeira mensagem da conversa
 }
 
 // Formato da API n8n (novo formato agrupado)

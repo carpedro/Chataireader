@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Search, MessageCircle, Calendar as CalendarIcon, Clock, X, Filter, CalendarRange } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, MessageCircle, Calendar as CalendarIcon, Clock, X, Filter, CalendarRange, Phone } from 'lucide-react';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
@@ -21,6 +21,8 @@ interface ConversationSummary {
   firstMessage: string;
   lastTimestamp: string;
   firstTimestamp: string;
+  contact?: string;
+  first_message_text?: string;
 }
 
 export function ConversationList({ data, onSelectConversation }: ConversationListProps) {
@@ -64,7 +66,9 @@ export function ConversationList({ data, onSelectConversation }: ConversationLis
         executionCount: executions.size,
         firstMessage: firstClientMessage?.message || sortedMessages[0]?.message || '',
         lastTimestamp: sortedMessages[sortedMessages.length - 1]?.timestamp || '',
-        firstTimestamp: sortedMessages[0]?.timestamp || ''
+        firstTimestamp: sortedMessages[0]?.timestamp || '',
+        contact: messages[0]?.contato,
+        first_message_text: messages[0]?.first_message_text
       });
     });
 
@@ -339,9 +343,9 @@ export function ConversationList({ data, onSelectConversation }: ConversationLis
                       </div>
                       
                       <p className="text-gray-600 truncate m-0 mb-2 text-[13px] md:text-[14px]">
-                        {conv.firstMessage.length > 80 
-                          ? `${conv.firstMessage.slice(0, 80)}...` 
-                          : conv.firstMessage}
+                        {(conv.first_message_text || conv.firstMessage).length > 80 
+                          ? `${(conv.first_message_text || conv.firstMessage).slice(0, 80)}...` 
+                          : (conv.first_message_text || conv.firstMessage)}
                       </p>
                       
                       <div className="flex items-center gap-2 md:gap-4 text-[11px] md:text-[12px] text-gray-500 flex-wrap">
@@ -355,6 +359,12 @@ export function ConversationList({ data, onSelectConversation }: ConversationLis
                           <span className="hidden sm:inline">{conv.executionCount} exec</span>
                           <span className="sm:hidden">{conv.executionCount}</span>
                         </div>
+                        {conv.contact && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            <span>{conv.contact}</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1">
                           <CalendarIcon className="w-3 h-3" />
                           <span>{formatDate(conv.firstTimestamp)}</span>
