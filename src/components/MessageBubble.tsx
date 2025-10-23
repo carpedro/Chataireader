@@ -9,14 +9,13 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ author, message, timestamp, highlighted }: MessageBubbleProps) {
-  // Considera como bot se o author for 'bot' ou começar com maiúscula (nome de pessoa = cliente)
-  // Se o author contém um nome (como "Eduardo Mingues"), é cliente (branco à esquerda)
-  // Se o author é 'bot' ou similar, é bot (verde à direita)
-  const authorLower = author.toLowerCase();
-  const isBot = authorLower === 'bot' || authorLower === 'sistema' || authorLower === 'assistente';
+  // author pode ser 'customer' ou 'bot'
+  // customer = mensagem do cliente (branco à esquerda)
+  // bot = mensagem do bot (verde à direita)
+  const isBot = author === 'bot';
   
   // Debug log
-  console.log('💬 Mensagem:', { author, isBot, message: message.substring(0, 30) });
+  console.log('💬 MessageBubble:', { author, isBot, message: message.substring(0, 30) });
 
   const formatTime = (timestampStr: string) => {
     try {

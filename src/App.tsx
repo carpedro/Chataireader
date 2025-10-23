@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ConversationData } from './types/conversation';
 import { ConversationList } from './components/ConversationList';
 import { ChatViewer } from './components/ChatViewer';
 import { LoadingScreen } from './components/LoadingScreen';
 import { UploadScreen } from './components/UploadScreen';
-import { fetchConversations } from './utils/api';
+import { fetchConversations, fetchConversationDetails } from './utils/api';
 
 type AppState = 'loading' | 'upload' | 'list' | 'chat' | 'error';
 
@@ -13,6 +13,10 @@ export default function App() {
   const [conversationData, setConversationData] = useState<ConversationData[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  
+  // Cache para conversas detalhadas
+  const [conversationCache, setConversationCache] = useState<Map<string, ConversationData[]>>(new Map());
+  const [listData, setListData] = useState<ConversationData[]>([]); // Dados da lista original
 
   useEffect(() => {
     // Try to fetch data from n8n API
@@ -22,8 +26,9 @@ export default function App() {
         console.log('⏱️ Aguarde, esta operação pode demorar até 30 segundos...');
         
         // Define o range de datas (20/10 a 21/10)
-        const endDate = new Date('2025-10-21T23:59:59.921Z');
-        const startDate = new Date('2025-10-20T00:00:01Z');
+        const endDate = new Date(); // Hoje
+        endDate.setHours(23, 59, 59, 999); // Ajusta para o final do dia
+        const startDate = new Date('2025-10-01T00:00:01Z');
 
         console.log('📅 Período:', {
           inicio: startDate.toISOString(),
@@ -97,6 +102,8 @@ export default function App() {
       });
     }
     
+    // Salvar dados da lista original
+    setListData(data);
     setConversationData(data);
 
     // Check URL for session_id
@@ -124,27 +131,72 @@ export default function App() {
 
   const handleFileUpload = (data: ConversationData[]) => {
     console.log('📁 Arquivo carregado com sucesso:', data.length, 'mensagens');
+    // Limpar cache ao carregar novos dados
+    setConversationCache(new Map());
     processConversationData(data);
   };
 
-  const handleSelectConversation = (sessionId: string) => {
+  const handleSelectConversation = async (sessionId: string) => {
+    console.log('🔍 Selecionando conversa:', sessionId);
     setSelectedSessionId(sessionId);
-    setAppState('chat');
     
-    // Update URL
-    const url = new URL(window.location.href);
-    url.searchParams.set('session_id', sessionId);
-    window.history.pushState({}, '', url.toString());
+    // Verificar se já temos os detalhes em cache
+    if (conversationCache.has(sessionId)) {
+      console.log('💾 Usando dados do cache para sessão:', sessionId);
+      const cachedData = conversationCache.get(sessionId)!;
+      setConversationData(cachedData);
+      setAppState('chat');
+      
+      // Update URL
+      const url = new URL(window.location.href);
+      url.searchParams.set('session_id', sessionId);
+      window.history.pushState({}, '', url.toString());
+      return;
+    }
+    
+    setAppState('loading'); // Mostrar loading enquanto busca os detalhes
+    
+    try {
+      console.log('📡 Buscando detalhes da conversa...');
+      const detailedData = await fetchConversationDetails(sessionId);
+      
+      console.log('✅ Detalhes carregados:', detailedData.length, 'mensagens');
+      
+      // Salvar no cache
+      setConversationCache(prev => new Map(prev).set(sessionId, detailedData));
+      
+      // Atualizar os dados com os detalhes da conversa
+      setConversationData(detailedData);
+      setAppState('chat');
+      
+      // Update URL
+      const url = new URL(window.location.href);
+      url.searchParams.set('session_id', sessionId);
+      window.history.pushState({}, '', url.toString());
+      
+    } catch (error) {
+      console.error('❌ Erro ao carregar detalhes da conversa:', error);
+      setErrorMessage('Erro ao carregar detalhes da conversa. Tente novamente.');
+      setAppState('error');
+    }
   };
 
   const handleBackFromChat = () => {
-    const uniqueSessions = new Set(conversationData.map(msg => msg.session_id));
+    console.log('🔙 Voltando da conversa para a lista');
+    
+    // Restaurar dados da lista original
+    if (listData.length > 0) {
+      console.log('📋 Restaurando dados da lista original:', listData.length, 'registros');
+      setConversationData(listData);
+    }
     
     // Clear session_id from URL
     const url = new URL(window.location.href);
     url.searchParams.delete('session_id');
     window.history.pushState({}, '', url.toString());
     
+    // Verificar se há múltiplas sessões
+    const uniqueSessions = new Set(listData.map(msg => msg.session_id));
     if (uniqueSessions.size === 1) {
       setAppState('loading');
     } else {

@@ -3,18 +3,11 @@ import { Upload, FileText, CheckCircle2, Copy, AlertCircle } from 'lucide-react'
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import * as XLSX from 'xlsx';
+import { ConversationData, ApiConversationSession } from '../types/conversation';
 
 interface UploadScreenProps {
   onFileProcessed: (data: ConversationData[]) => void;
   errorMessage?: string;
-}
-
-export interface ConversationData {
-  session_id: string;
-  execution_id: string;
-  timestamp: string;
-  author: 'cliente' | 'bot';
-  message: string;
 }
 
 export function UploadScreen({ onFileProcessed, errorMessage }: UploadScreenProps) {
@@ -32,7 +25,7 @@ export function UploadScreen({ onFileProcessed, errorMessage }: UploadScreenProp
     "action": "searchAll",
     "filter": [
         { "tenant": "pucrs" },
-        { "start_date": "2025-10-20T00:00:01"},
+        { "start_date": "2025-09-29T00:00:01"},
         { "end_date": "2025-10-21T23:59:59.921Z"}
     ]
 }' > conversas.json`;
@@ -57,7 +50,7 @@ export function UploadScreen({ onFileProcessed, errorMessage }: UploadScreenProp
 
     // Get headers from first row
     const headers = jsonData[0].map((h: any) => String(h).trim());
-    const requiredColumns = ['session_id', 'execution_id', 'timestamp', 'author', 'message'];
+    const requiredColumns = ['session_id', 'timestamp', 'author', 'message'];
     
     // Validate headers
     const missingColumns = requiredColumns.filter(col => !headers.includes(col));
@@ -92,7 +85,6 @@ export function UploadScreen({ onFileProcessed, errorMessage }: UploadScreenProp
 
       data.push({
         session_id: row.session_id,
-        execution_id: row.execution_id,
         timestamp: row.timestamp,
         author: normalizedAuthor as 'cliente' | 'bot',
         message: row.message
@@ -120,109 +112,114 @@ export function UploadScreen({ onFileProcessed, errorMessage }: UploadScreenProp
       throw new Error('O arquivo JSON deve conter um array de conversas');
     }
 
-    const data: ConversationData[] = [];
+    const messages: ConversationData[] = [];
 
-    // Process new n8n API format: array of sessions with nested conversations
-    jsonData.forEach((session, sessionIndex) => {
-      const sessionId = session.session_id || '';
+    if (jsonData.length === 0) {
+      console.warn('⚠️ Upload - Nenhum dado encontrado no arquivo');
+      return messages;
+    }
+
+    // Log do primeiro registro para análise
+    console.log('📝 Upload - Exemplo do primeiro registro (raw):');
+    console.log(JSON.stringify(jsonData[0], null, 2).substring(0, 800) + '...');
+
+    // Detectar formato dos dados automaticamente
+    const firstItem = jsonData[0];
+    const hasConversationsArray = firstItem.conversations && Array.isArray(firstItem.conversations);
+    const hasMessageField = 'message' in firstItem;
+    const hasFirstMessageText = 'first_message_text' in firstItem;
+    const hasCountMessage = 'count_message' in firstItem;
+    
+    console.log('🔍 Upload - Detecção de formato:');
+    console.log('  - Tem array "conversations"?', hasConversationsArray);
+    console.log('  - Tem campo "message"?', hasMessageField);
+    console.log('  - Tem campo "first_message_text"?', hasFirstMessageText);
+    console.log('  - Tem campo "count_message"?', hasCountMessage);
+    console.log('  - Campos disponíveis:', Object.keys(firstItem).join(', '));
+
+    // Verificar se é formato de RESUMO (sem mensagens completas)
+    if (hasFirstMessageText || (hasCountMessage && !hasConversationsArray && !hasMessageField)) {
+      const errorMessage = 
+        'Arquivo contém apenas resumos das sessões, não as mensagens completas.\n\n' +
+        'Formato recebido: ' + Object.keys(firstItem).join(', ') + '\n\n' +
+        'Formato esperado: objetos com array "conversations" contendo {author, message, timestamp}\n\n' +
+        'Por favor, verifique se você está usando o endpoint correto da API ou baixou o arquivo correto.';
       
-      if (!sessionId) {
-        console.warn(`Sessão ${sessionIndex + 1}: session_id ausente, ignorando...`);
-        return;
-      }
+      console.error('❌ Upload - Formato de RESUMO detectado (sem mensagens)');
+      console.error('📋 Campos:', Object.keys(firstItem));
+      
+      throw new Error(errorMessage);
+    }
 
-      // Check if this is the new format with conversations array
-      if (session.conversations && Array.isArray(session.conversations)) {
-        console.log(`📦 UploadScreen - Processando sessão ${sessionId} com ${session.conversations.length} mensagens (novo formato)`);
+    if (hasConversationsArray) {
+      // FORMATO 1: Sessões agrupadas com array conversations
+      console.log('✅ Upload - Formato detectado: AGRUPADO (sessões com array conversations)');
+      
+      jsonData.forEach((session: any, sessionIndex: number) => {
+        const sessionId = session.session_id || `session_${sessionIndex}`;
+        const sessionAuthor = session.author || '';
+        const countMessages = session.count_messages || session.conversations?.length || 0;
         
-        // New format: process nested conversations
-        session.conversations.forEach((conv: any, msgIndex: number) => {
-          const author = conv.author || '';
+        if (!session.conversations || !Array.isArray(session.conversations)) {
+          console.warn(`⚠️ Upload - Sessão ${sessionId}: sem array conversations válido`);
+          return;
+        }
+        
+        session.conversations.forEach((conv: any) => {
+          const author = String(conv.author || '').toLowerCase().trim();
           const message = conv.message || '';
           const timestamp = conv.timestamp || new Date().toISOString();
-
-          if (!author || !message) {
-            console.warn(`Sessão ${sessionId}, mensagem ${msgIndex + 1}: Dados incompletos, ignorando...`);
-            return;
-          }
-
-          const normalizedAuthor = String(author).toLowerCase().trim();
           
-          // Map author formats: customer -> cliente, bot -> bot
-          let finalAuthor: 'cliente' | 'bot';
-          if (normalizedAuthor === 'customer' || normalizedAuthor === 'cliente' || normalizedAuthor === 'user') {
-            finalAuthor = 'cliente';
-          } else if (normalizedAuthor === 'bot' || normalizedAuthor === 'assistant' || normalizedAuthor === 'sistema') {
-            finalAuthor = 'bot';
-          } else {
-            console.warn(`Sessão ${sessionId}, mensagem ${msgIndex + 1}: Autor desconhecido '${author}', tratando como 'bot'`);
-            finalAuthor = 'bot';
-          }
-
-          const messageStr = String(message).trim();
-          if (!messageStr) {
-            return; // Skip empty messages
-          }
-
-          const conversationData = {
-            session_id: String(sessionId).trim(),
-            execution_id: sessionId, // Use session_id as execution_id in new format
-            timestamp: String(timestamp).trim(),
-            author: finalAuthor,
-            message: messageStr
-          };
-          
-          if (msgIndex === 0) {
-            console.log(`📝 UploadScreen - Exemplo de conversão (primeira mensagem):`, {
-              original: { author: conv.author, message: conv.message.substring(0, 30) + '...' },
-              converted: { author: conversationData.author, message: conversationData.message.substring(0, 30) + '...' }
-            });
+          if (!message.trim()) {
+            return; // Ignorar mensagens vazias
           }
           
-          data.push(conversationData);
+          messages.push({
+            session_id: sessionId,
+            session_author: sessionAuthor,
+            author: author === 'customer' ? 'customer' : 'bot',
+            message: message.trim(),
+            timestamp: timestamp,
+            count_messages: countMessages
+          });
         });
         
-        console.log(`✅ UploadScreen - Sessão ${sessionId}: ${session.conversations.length} mensagens processadas`);
-      } else {
-        // Old format: direct message format (fallback)
-        const executionId = session.execution_id || session.executionId || sessionId;
-        const timestamp = session.timestamp || session.created_at || new Date().toISOString();
-        const author = session.author || session.sender || session.from || '';
-        const message = session.message || session.text || session.content || '';
-
-        if (!author || !message) {
-          console.warn(`Item ${sessionIndex + 1}: Dados incompletos, ignorando...`);
-          return;
+        if (sessionIndex === 0) {
+          console.log(`📝 Upload - Primeira sessão: ${sessionId} com ${session.conversations.length} mensagens`);
         }
-
-        const normalizedAuthor = String(author).toLowerCase().trim();
+      });
+      
+    } else if (hasMessageField) {
+      // FORMATO 2: Mensagens planas (cada registro é uma mensagem)
+      console.log('✅ Upload - Formato detectado: PLANO (cada registro é uma mensagem)');
+      
+      jsonData.forEach((item: any, index: number) => {
+        const sessionId = item.session_id || item.sessionId || `session_${index}`;
+        const author = String(item.author || '').toLowerCase().trim();
+        const message = item.message || item.text || item.content || '';
+        const timestamp = item.timestamp || item.created_at || item.date || new Date().toISOString();
         
-        let finalAuthor: 'cliente' | 'bot';
-        if (normalizedAuthor === 'cliente' || normalizedAuthor === 'user' || normalizedAuthor === 'customer') {
-          finalAuthor = 'cliente';
-        } else if (normalizedAuthor === 'bot' || normalizedAuthor === 'assistant' || normalizedAuthor === 'sistema') {
-          finalAuthor = 'bot';
-        } else {
-          console.warn(`Item ${sessionIndex + 1}: Autor desconhecido '${author}', tratando como 'bot'`);
-          finalAuthor = 'bot';
+        if (!message.trim()) {
+          return; // Ignorar mensagens vazias
         }
-
-        const messageStr = String(message).trim();
-        if (!messageStr) {
-          return;
-        }
-
-        data.push({
-          session_id: String(sessionId).trim(),
-          execution_id: String(executionId).trim(),
-          timestamp: String(timestamp).trim(),
-          author: finalAuthor,
-          message: messageStr
+        
+        messages.push({
+          session_id: sessionId,
+          session_author: item.from || item.sender || '',
+          author: author === 'customer' || author === 'user' ? 'customer' : 'bot',
+          message: message.trim(),
+          timestamp: timestamp,
+          count_messages: 0
         });
-      }
-    });
+      });
+      
+    } else {
+      console.error('❌ Upload - Formato não reconhecido! Estrutura:', Object.keys(firstItem));
+      throw new Error('Formato de arquivo não reconhecido');
+    }
 
-    return data;
+    console.log(`✅ Upload - Total de ${messages.length} mensagens processadas`);
+    return messages;
   }, []);
 
   const handleFile = useCallback(async (file: File) => {
@@ -371,6 +368,16 @@ export function UploadScreen({ onFileProcessed, errorMessage }: UploadScreenProp
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Important Note */}
+        <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-blue-900 text-[12px] md:text-[13px] mb-1">
+            <strong>⚠️ Importante:</strong> O arquivo deve conter as <strong>mensagens completas</strong>, não apenas resumos de sessões.
+          </p>
+          <p className="text-blue-700 text-[11px] md:text-[12px]">
+            Formato esperado: sessões com array <code className="bg-blue-100 px-1 rounded">conversations</code> contendo objetos com author/message/timestamp
+          </p>
+        </div>
 
         {/* Load Example Button */}
         <div className="mb-6">
