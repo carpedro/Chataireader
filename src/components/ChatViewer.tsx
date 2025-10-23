@@ -94,14 +94,9 @@ export function ChatViewer({ data, onBack, sessionId, onNavigateToSession }: Cha
         return timeA - timeB;
       }
       
-      // If timestamps are equal, sort by execution_id
-      if (a.execution_id !== b.execution_id) {
-        return a.execution_id.localeCompare(b.execution_id);
-      }
-      
-      // If execution_id is also equal, cliente comes before bot
-      if (a.author === 'cliente' && b.author === 'bot') return -1;
-      if (a.author === 'bot' && b.author === 'cliente') return 1;
+      // If timestamps are equal, customer comes before bot
+      if (a.author === 'customer' && b.author === 'bot') return -1;
+      if (a.author === 'bot' && b.author === 'customer') return 1;
       
       return 0;
     });
@@ -131,13 +126,7 @@ export function ChatViewer({ data, onBack, sessionId, onNavigateToSession }: Cha
       .filter(({ msg }) => msg.message.toLowerCase().includes(term));
   }, [searchTerm, sortedMessages]);
 
-  // Get unique execution IDs
-  const uniqueExecutions = useMemo(() => {
-    return new Set(filteredData.map(msg => msg.execution_id));
-  }, [filteredData]);
-
   const currentSessionId = sessionId || filteredData[0]?.session_id || 'N/A';
-  const executionCount = uniqueExecutions.size;
 
   // Scroll to current search result
   useEffect(() => {
@@ -283,34 +272,57 @@ export function ChatViewer({ data, onBack, sessionId, onNavigateToSession }: Cha
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto relative z-10 custom-scrollbar">
         <div className="px-3 md:px-6 lg:px-16 xl:px-32 py-4 md:py-6 max-w-[1200px] mx-auto" ref={scrollRef}>
-          {sortedMessages.map((msg, index) => {
-            const isHighlighted = searchResults.some(result => result.index === index);
+          {(() => {
+            console.log('🎨 RENDERIZAÇÃO - Total de mensagens a renderizar:', sortedMessages.length);
             
-            // Check if we need to show a date separator
-            const showDateSeparator = index === 0 || 
-              new Date(msg.timestamp).toDateString() !== new Date(sortedMessages[index - 1].timestamp).toDateString();
-            
-            return (
-              <div key={`${msg.execution_id}-${msg.author}-${index}`}>
-                {showDateSeparator && <DateSeparator date={msg.timestamp} />}
-                <div ref={(el) => { messageRefs.current[index] = el; }}>
-                  <MessageBubble
-                    author={msg.author}
-                    message={msg.message}
-                    timestamp={msg.timestamp}
-                    highlighted={isHighlighted && searchTerm.length > 0}
-                  />
+            if (sortedMessages.length === 0) {
+              console.warn('⚠️ RENDERIZAÇÃO - Nenhuma mensagem para exibir!');
+              return (
+                <div className="flex items-center justify-center h-full text-center py-12">
+                  <div>
+                    <p className="text-gray-500 mb-2">Nenhuma mensagem encontrada</p>
+                    <p className="text-sm text-gray-400">Session ID: {sessionId || 'N/A'}</p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            }
+            
+            console.log('✅ RENDERIZAÇÃO - Renderizando', sortedMessages.length, 'mensagens');
+            console.log('📝 RENDERIZAÇÃO - Primeiras 3 mensagens:', sortedMessages.slice(0, 3).map(m => ({
+              author: m.author,
+              message: m.message.substring(0, 40) + '...',
+              timestamp: m.timestamp
+            })));
+            
+            return sortedMessages.map((msg, index) => {
+              const isHighlighted = searchResults.some(result => result.index === index);
+              
+              // Check if we need to show a date separator
+              const showDateSeparator = index === 0 || 
+                new Date(msg.timestamp).toDateString() !== new Date(sortedMessages[index - 1].timestamp).toDateString();
+              
+              return (
+                <div key={`${msg.session_id}-${index}`}>
+                  {showDateSeparator && <DateSeparator date={msg.timestamp} />}
+                  <div ref={(el) => { messageRefs.current[index] = el; }}>
+                    <MessageBubble
+                      author={msg.author}
+                      message={msg.message}
+                      timestamp={msg.timestamp}
+                      highlighted={isHighlighted && searchTerm.length > 0}
+                    />
+                  </div>
+                </div>
+              );
+            });
+          })()}
         </div>
       </div>
 
       {/* Footer Info */}
       <div className="bg-white border-t px-3 md:px-4 py-2 text-center relative z-10">
         <p className="text-muted-foreground m-0 text-[11px] md:text-[14px]">
-          {sortedMessages.length} mensagens • {executionCount} {executionCount === 1 ? 'execução' : 'execuções'}
+          {sortedMessages.length} {sortedMessages.length === 1 ? 'mensagem' : 'mensagens'}
         </p>
       </div>
     </div>

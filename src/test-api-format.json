@@ -1,0 +1,25 @@
+[
+  {
+    "session_id": "TEST001",
+    "author": "whatsapp:+5511999999999",
+    "count_messages": 3,
+    "conversations": [
+      {
+        "author": "customer",
+        "message": "Olá, gostaria de informações",
+        "timestamp": "2025-10-20T10:00:00.000Z"
+      },
+      {
+        "author": "bot",
+        "message": "Olá! Como posso ajudar?",
+        "timestamp": "2025-10-20T10:00:05.000Z"
+      },
+      {
+        "author": "customer",
+        "message": "Quero saber sobre cursos",
+        "timestamp": "2025-10-20T10:00:15.000Z"
+      }
+    ],
+    "elapsed_time": 15.0
+  }
+]

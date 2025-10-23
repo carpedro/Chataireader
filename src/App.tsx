@@ -26,8 +26,9 @@ export default function App() {
         console.log('⏱️ Aguarde, esta operação pode demorar até 30 segundos...');
         
         // Define o range de datas (20/10 a 21/10)
-        const endDate = new Date('2025-10-21T23:59:59.921Z');
-        const startDate = new Date('2025-10-20T00:00:01Z');
+        const endDate = new Date(); // Hoje
+        endDate.setHours(23, 59, 59, 999); // Ajusta para o final do dia
+        const startDate = new Date('2025-10-01T00:00:01Z');
 
         console.log('📅 Período:', {
           inicio: startDate.toISOString(),
